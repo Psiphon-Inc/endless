@@ -19,7 +19,6 @@
 
 #import "SettingsViewController.h"
 
-#import "FeedbackUpload.h"
 #import "HTTPSEverywhereRuleController.h"
 #import "Privacy.h"
 

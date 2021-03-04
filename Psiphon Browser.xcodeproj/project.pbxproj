@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -55,14 +55,12 @@
 		449316E21E8BFA4000D0708D /* PsiphonConnectionModalViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 449316E11E8BFA4000D0708D /* PsiphonConnectionModalViewController.m */; };
 		44AA65C71E29640300C9976D /* blip1.wav in Resources */ = {isa = PBXBuildFile; fileRef = 44AA65C61E29640300C9976D /* blip1.wav */; };
 		44B944361EEB21D6003B6B9A /* ICDMaterialActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 44B944351EEB21D6003B6B9A /* ICDMaterialActivityIndicatorView.m */; };
-		44BE19211E26CF2000F94203 /* PsiphonTunnel.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 44E779411DE6031A00854379 /* PsiphonTunnel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		44BF73F21EB11B8A0048E3C7 /* PsiphonHomePagesEquivalentURLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 44BF73F11EB11B8A0048E3C7 /* PsiphonHomePagesEquivalentURLs.m */; };
 		44E7792A1DE4DCCA00854379 /* IASKLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 44E7792C1DE4DCCA00854379 /* IASKLocalizable.strings */; };
 		44E7792D1DE4DCCF00854379 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 44E7792F1DE4DCCF00854379 /* Localizable.strings */; };
 		44E779421DE6031A00854379 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 44E7793E1DE6031A00854379 /* AppDelegate.m */; };
 		44E779431DE6031A00854379 /* PsiphonConnectionIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = 44E779401DE6031A00854379 /* PsiphonConnectionIndicator.m */; };
 		44E779461DE6038000854379 /* psiphon_config in Resources */ = {isa = PBXBuildFile; fileRef = 44E779451DE6038000854379 /* psiphon_config */; };
-		44E779481DE6040100854379 /* PsiphonTunnel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44E779411DE6031A00854379 /* PsiphonTunnel.framework */; };
 		4E1175191DD63123009527EB /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E1175181DD63123009527EB /* SettingsViewController.m */; };
 		4E628E9E1EF89D2C00F8B3B5 /* TutorialPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E628E9B1EF89D2C00F8B3B5 /* TutorialPageViewController.m */; };
 		4E628E9F1EF89D2C00F8B3B5 /* TutorialViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E628E9D1EF89D2C00F8B3B5 /* TutorialViewController.m */; };
@@ -79,6 +77,9 @@
 		6631B2341EB3B6DB003DFBE1 /* embedded_server_entries in Resources */ = {isa = PBXBuildFile; fileRef = 6631B2331EB3B6DB003DFBE1 /* embedded_server_entries */; };
 		7F1EA282F5FFF65F893BD73A /* libPods-Psiphon Browser Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E5C913DBB94F8C230370E60 /* libPods-Psiphon Browser Tests.a */; };
 		CA7305DD054FDBDCCCC74C2C /* libPods-Psiphon Browser.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADA1E150C1440D00C553EC37 /* libPods-Psiphon Browser.a */; };
+		CE741FEC25E972BC00C04D8D /* PsiphonTunnel.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE741FEB25E972BC00C04D8D /* PsiphonTunnel.xcframework */; };
+		CE741FED25E972BC00C04D8D /* PsiphonTunnel.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE741FEB25E972BC00C04D8D /* PsiphonTunnel.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CEC51A4A25ED75ED00C17560 /* FeedbackUpload.m in Sources */ = {isa = PBXBuildFile; fileRef = CEC51A4925ED75ED00C17560 /* FeedbackUpload.m */; };
 		CEE4744522CFB5FB00E00AF1 /* Privacy.m in Sources */ = {isa = PBXBuildFile; fileRef = CEE4744422CFB5FB00E00AF1 /* Privacy.m */; };
 		CEE4744822CFB73400E00AF1 /* CertificateAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = CEE4744722CFB73400E00AF1 /* CertificateAuthentication.m */; };
 /* End PBXBuildFile section */
@@ -94,14 +95,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		44E778FD1DDB73A500854379 /* CopyFiles */ = {
+		CE741FEE25E972BC00C04D8D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				44BE19211E26CF2000F94203 /* PsiphonTunnel.framework in CopyFiles */,
+				CE741FED25E972BC00C04D8D /* PsiphonTunnel.xcframework in Embed Frameworks */,
 			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -192,7 +194,6 @@
 		44E7793E1DE6031A00854379 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Endless/AppDelegate.m; sourceTree = SOURCE_ROOT; };
 		44E7793F1DE6031A00854379 /* PsiphonConnectionIndicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PsiphonConnectionIndicator.h; path = Endless/PsiphonConnectionIndicator.h; sourceTree = SOURCE_ROOT; };
 		44E779401DE6031A00854379 /* PsiphonConnectionIndicator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PsiphonConnectionIndicator.m; path = Endless/PsiphonConnectionIndicator.m; sourceTree = SOURCE_ROOT; };
-		44E779411DE6031A00854379 /* PsiphonTunnel.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PsiphonTunnel.framework; path = Endless/PsiphonTunnel.framework; sourceTree = SOURCE_ROOT; };
 		44E779451DE6038000854379 /* psiphon_config */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = psiphon_config; path = Endless/psiphon_config; sourceTree = SOURCE_ROOT; };
 		46EEA493FFA218B6AB420FF5 /* Pods-Psiphon Browser.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Psiphon Browser.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Psiphon Browser/Pods-Psiphon Browser.debug.xcconfig"; sourceTree = "<group>"; };
 		4E1175171DD6310A009527EB /* SettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
@@ -336,6 +337,9 @@
 		A5506E12B0ABA07F832A7D00 /* Pods-Psiphon Browser Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Psiphon Browser Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Psiphon Browser Tests/Pods-Psiphon Browser Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		ACC15F6DC777A8D47F3D12C3 /* Pods-Psiphon Browser Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Psiphon Browser Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Psiphon Browser Tests/Pods-Psiphon Browser Tests.release.xcconfig"; sourceTree = "<group>"; };
 		ADA1E150C1440D00C553EC37 /* libPods-Psiphon Browser.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Psiphon Browser.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE741FEB25E972BC00C04D8D /* PsiphonTunnel.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = PsiphonTunnel.xcframework; path = Endless/PsiphonTunnel.xcframework; sourceTree = "<group>"; };
+		CEC51A4825ED75ED00C17560 /* FeedbackUpload.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FeedbackUpload.h; path = Endless/FeedbackUpload.h; sourceTree = SOURCE_ROOT; };
+		CEC51A4925ED75ED00C17560 /* FeedbackUpload.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = FeedbackUpload.m; path = Endless/FeedbackUpload.m; sourceTree = SOURCE_ROOT; };
 		CEE4744322CFB5FB00E00AF1 /* Privacy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Privacy.h; sourceTree = "<group>"; };
 		CEE4744422CFB5FB00E00AF1 /* Privacy.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Privacy.m; sourceTree = "<group>"; };
 		CEE4744622CFB73400E00AF1 /* CertificateAuthentication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CertificateAuthentication.h; sourceTree = "<group>"; };
@@ -347,9 +351,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				44E779481DE6040100854379 /* PsiphonTunnel.framework in Frameworks */,
 				016B2FCD1A5648AE002D2730 /* WebKit.framework in Frameworks */,
 				CA7305DD054FDBDCCCC74C2C /* libPods-Psiphon Browser.a in Frameworks */,
+				CE741FEC25E972BC00C04D8D /* PsiphonTunnel.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -545,6 +549,8 @@
 				44E7793E1DE6031A00854379 /* AppDelegate.m */,
 				4EF89B6D1F040D2A007C74BF /* DownloadHelper.h */,
 				4EF89B6E1F040D2A007C74BF /* DownloadHelper.m */,
+				CEC51A4825ED75ED00C17560 /* FeedbackUpload.h */,
+				CEC51A4925ED75ED00C17560 /* FeedbackUpload.m */,
 				44B944341EEB21D6003B6B9A /* ICDMaterialActivityIndicatorView.h */,
 				44B944351EEB21D6003B6B9A /* ICDMaterialActivityIndicatorView.m */,
 				44E7793F1DE6031A00854379 /* PsiphonConnectionIndicator.h */,
@@ -553,7 +559,6 @@
 				449316E11E8BFA4000D0708D /* PsiphonConnectionModalViewController.m */,
 				44BF73F01EB11B890048E3C7 /* PsiphonHomePagesEquivalentURLs.h */,
 				44BF73F11EB11B8A0048E3C7 /* PsiphonHomePagesEquivalentURLs.m */,
-				44E779411DE6031A00854379 /* PsiphonTunnel.framework */,
 			);
 			path = Psiphon;
 			sourceTree = "<group>";
@@ -594,6 +599,7 @@
 		6CC21620E2AE7B4037C6401B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE741FEB25E972BC00C04D8D /* PsiphonTunnel.xcframework */,
 				016B2FCC1A5648AE002D2730 /* WebKit.framework */,
 				018333EB1A357D8B00670CD1 /* libPods-OCMock.a */,
 				ADA1E150C1440D00C553EC37 /* libPods-Psiphon Browser.a */,
@@ -613,9 +619,9 @@
 				01801E8E1A32CA2A002B4718 /* Sources */,
 				01801E8F1A32CA2A002B4718 /* Frameworks */,
 				01801E901A32CA2A002B4718 /* Resources */,
-				44E778FD1DDB73A500854379 /* CopyFiles */,
 				440FB7731E3A9ADC00B10B9E /* ShellScript */,
 				E6FF98A1B125E6E1E5030808 /* [CP] Copy Pods Resources */,
+				CE741FEE25E972BC00C04D8D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -855,6 +861,7 @@
 				44864F8F1E708EE900865705 /* JAHPCacheStoragePolicy.m in Sources */,
 				01801EA11A32CA2A002B4718 /* WebViewController.m in Sources */,
 				44BF73F21EB11B8A0048E3C7 /* PsiphonHomePagesEquivalentURLs.m in Sources */,
+				CEC51A4A25ED75ED00C17560 /* FeedbackUpload.m in Sources */,
 				444CEFB31E54DA2D0085F3D4 /* NYAlertView.m in Sources */,
 				4E7094601E4CD14A00679B3F /* OnboardingInfoViewController.m in Sources */,
 				01F2AE401B82666900D5651A /* SSLCertificateViewController.m in Sources */,
@@ -1151,7 +1158,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1173,7 +1181,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				INFOPLIST_FILE = Endless/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.psiphon3.browser;
 				PRODUCT_NAME = PsiphonBrowser;
 				PROVISIONING_PROFILE = "";
@@ -1201,7 +1212,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				INFOPLIST_FILE = Endless/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.psiphon3.browser;
 				PRODUCT_NAME = PsiphonBrowser;
 				PROVISIONING_PROFILE = "";
@@ -1225,7 +1239,11 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "Endless Tests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Pods/build/Debug-iphoneos",
@@ -1252,7 +1270,11 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "Endless Tests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Pods/build/Debug-iphoneos",

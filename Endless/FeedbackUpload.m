@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Psiphon Inc.
+ * Copyright (c) 2021, Psiphon Inc.
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,274 +17,208 @@
  *
  */
 
-
 #import "FeedbackUpload.h"
-#import "PsiphonData.h"
-#import <PsiphonTunnel/JailbreakCheck.h>
+#import "AppDelegate.h"
+#import "Feedback.h"
+#import <PsiphonTunnel/Reachability.h>
 
-#define kThumbIndexUnselected -1
-#define kQuestionHash "24f5c290039e5b0a2fd17bfcdb8d3108"
-#define kQuestionTitle "Overall satisfaction"
-
-#define safeNullable(x) x != nil ? x : @""
-
-@interface Feedback : NSObject
-
+/// UserFeedback represents a user feedback submitted through the in-app feedback form.
+@interface UserFeedback : NSString
+@property (assign) NSInteger selectedThumbIndex;
+@property (strong, nonatomic) NSString* comments;
+@property (strong, nonatomic) NSString* email;
+@property (assign, nonatomic) BOOL uploadDiagnostics;
 @end
 
-@implementation Feedback {
-	NSString *title;
+@implementation UserFeedback
+@end
+
+@implementation FeedbackUpload {
+	dispatch_queue_t workQueue;
+	ConnectionState connectionState;
+	NSMutableArray<UserFeedback*>* pendingUploads;
+	PsiphonTunnelFeedback *psiphonTunnelFeedback;
+	BOOL uploadPaused;
 }
 
-@end
-
-@implementation FeedbackUpload
-
-// Form and send feedback blob which conforms to structure
-// expected by the feedback template for ios,
-// https://bitbucket.org/psiphon/psiphon-circumvention-system/src/default/EmailResponder/FeedbackDecryptor/templates/?at=default
-// Matching format used by android client,
-// https://bitbucket.org/psiphon/psiphon-circumvention-system/src/default/Android/app/src/main/java/com/psiphon3/psiphonlibrary/Diagnostics.java
-// TODO: will fail silently on any errors
-+ (void)generateAndSendFeedback:(NSInteger)thumbIndex
-					   comments:(NSString*)comments
-						  email:(NSString*)email
-			 sendDiagnosticInfo:(BOOL)sendDiagnosticInfo
-			  withPsiphonConfig:(NSString*)psiphonConfig {
-
-	NSDictionary *config = [FeedbackUpload jsonToDictionary:psiphonConfig];
-	if (config == nil) {
-		return;
+- (id)initWithConnectionState:(ConnectionState)state {
+	self = [super init];
+	if (self) {
+		self->workQueue = dispatch_queue_create("com.psiphon3.browser.FeedbackUploadQueue", DISPATCH_QUEUE_SERIAL);
+		self->connectionState = state;
+		self->pendingUploads = [[NSMutableArray alloc] init];
+		self->uploadPaused = FALSE;
 	}
+	return self;
+}
 
-	NSMutableDictionary *feedbackBlob = [[NSMutableDictionary alloc] init];
+- (void)setConnectionState:(ConnectionState)state {
+	dispatch_async(self->workQueue, ^{
+		if (state != self->connectionState) {
+			self->connectionState = state;
 
-	// Ensure the survey response is valid
-	if (thumbIndex < -1 || thumbIndex > 1) {
-		return;
-	}
-
-	// Ensure either feedback or survey response was completed
-	if (thumbIndex == -1 && sendDiagnosticInfo == false && comments.length == 0 && email.length == 0) {
-		return;
-	}
-
-	// Check survey response
-	NSString *surveyResponse = @"";
-	if (thumbIndex != kThumbIndexUnselected) {
-		surveyResponse = [NSString stringWithFormat:@"[{\"answer\":%ld,\"question\":\"%s\", \"title\":\"%s\"}]", (long)thumbIndex, kQuestionHash, kQuestionTitle];
-	}
-
-	NSDictionary *feedback = @{
-							   @"email": safeNullable(email),
-							   @"Message":  @{@"text": safeNullable(comments)},
-							   @"Survey": @{@"json": safeNullable(surveyResponse)}
-							   };
-	[feedbackBlob setObject:feedback forKey:@"Feedback"];
-
-	// If user decides to disclose diagnostics data
-	if (sendDiagnosticInfo == YES) {
-		NSMutableArray *diagnosticHistoryArray = [[NSMutableArray alloc] init];
-
-		for (DiagnosticEntry *d in [[PsiphonData sharedInstance] diagnosticHistory]) {
-			NSDictionary *entry = @{
-									@"data": [d data],
-									@"msg": [d message],
-									@"timestamp!!timestamp": [d getTimestampISO8601]
-									};
-			[diagnosticHistoryArray addObject:entry];
-		}
-
-		NSMutableArray *statusHistoryArray = [[NSMutableArray alloc] init];
-
-		for (StatusEntry *s in [[PsiphonData sharedInstance] statusHistory]) {
-			// Don't send any sensitive logs or debug logs
-			if (s.sensitivity == SensitivityLevelSensitiveLog || s.priority == PriorityDebug) {
-				continue;
+			if ([self->pendingUploads count] == 0) {
+				return;
 			}
-			NSMutableDictionary *entry =
-			[NSMutableDictionary dictionaryWithDictionary: @{
-															 @"id": s.id,
-															 @"timestamp!!timestamp": [s getTimestampISO8601],
-															 @"priority": @(s.priority)
-															 }];
 
-			NSArray *f = s.formatArgs;
-			if ([f count] > 0 && s.sensitivity != SensitivityLevelSensitiveFormatArgs) {
-				[entry setObject:f forKey:@"formatArgs"];
+			if (self->uploadPaused == FALSE) {
+				[self stopSendingFeedback];
+				self->uploadPaused = TRUE;
 			} else {
-				[entry setObject:@[] forKey:@"formatArgs"];
+				[self startSendingFeedback];
+				self->uploadPaused = FALSE;
 			}
-
-			Throwable *t = s.throwable;
-			if (t != nil) {
-				NSDictionary *throwable = @{
-											@"message": t.message,
-											@"stack": t.stackTrace
-											};
-				[entry setObject:throwable forKey:@"throwable"];
-			}
-
-			[statusHistoryArray addObject:entry];
 		}
-
-		NSDictionary *diagnosticInfo = @{
-										 @"DiagnosticHistory": diagnosticHistoryArray,
-										 @"StatusHistory": statusHistoryArray,
-										 @"SystemInformation":
-											 @{
-												 @"Build": [FeedbackUpload gatherDeviceInfo],
-												 @"PsiphonInfo":
-													 @{
-														 @"CLIENT_VERSION": safeNullable([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]),
-														 @"PROPAGATION_CHANNEL_ID": [config objectForKey:@"PropagationChannelId"],
-														 @"SPONSOR_ID": [config objectForKey: @"SponsorId"]
-														 },
-												 @"isAppStoreBuild": @YES,
-												 @"isJailbroken": [JailbreakCheck isDeviceJailbroken] ? @YES : @NO,
-												 @"language": safeNullable([[NSUserDefaults standardUserDefaults] objectForKey:appLanguage]),
-												 @"networkTypeName": [FeedbackUpload getConnectionType]
-												 }
-										 };
-		[feedbackBlob setObject:diagnosticInfo forKey:@"DiagnosticInfo"];
-	}
-
-	NSString *rndmHexId = [FeedbackUpload generateFeedbackId];
-	if (rndmHexId == nil) {
-		return;
-	}
-
-	NSDictionary *metadata = @{
-							   @"id": rndmHexId,
-							   @"platform": @"ios-browser",
-							   @"version": @1
-							   };
-	[feedbackBlob setObject:metadata forKey:@"Metadata"];
-
-	NSError *e = nil;
-	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:feedbackBlob options:0 error:&e];
-	if (e != nil) {
-		return;
-	}
-
-	NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
-	// Extract feedback config values
-	NSDictionary *feedbackConfig = [config objectForKey:@"feedbackConfig"];
-	if (feedbackConfig == nil) {
-		return;
-	}
-	NSString *pubKey = [feedbackConfig objectForKey:@"b64EncodedPublicKey"];
-	NSString *uploadServer = [feedbackConfig objectForKey:@"uploadServer"];
-	NSString *uploadServerHeaders = [feedbackConfig objectForKey:@"uploadServerHeaders"];
-
-	// Upload feedback
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		[[[AppDelegate sharedAppDelegate] psiphonTunnel] sendFeedback:jsonString publicKey:pubKey uploadServer:uploadServer uploadServerHeaders:uploadServerHeaders];
 	});
 }
 
-// Generate random feedback ID
-+ (NSString*)generateFeedbackId
-{
-	NSMutableString *feedbackID = NULL;
-	size_t numBytes = 8;
-	uint8_t *randomBytes = [FeedbackUpload generateRandomBytes:numBytes];
-	if (randomBytes != NULL) {
-		// Two hex characters are required to represent each byte
-		feedbackID = [[NSMutableString alloc] initWithCapacity:numBytes*2];
-		for(NSInteger index = 0; index < numBytes; index++)
-		{
-			[feedbackID appendFormat: @"%02hhX", randomBytes[index]];
+- (void)uploadFeedbackWithSelectedThumbIndex:(NSInteger)selectedThumbIndex
+									comments:(NSString*)comments
+									   email:(NSString*)email
+						   uploadDiagnostics:(BOOL)uploadDiagnostics {
+	dispatch_async(self->workQueue, ^{
+		UserFeedback *feedback = [[UserFeedback alloc] init];
+		feedback.selectedThumbIndex = selectedThumbIndex;
+		feedback.comments = comments;
+		feedback.email = email;
+		feedback.uploadDiagnostics = uploadDiagnostics;
+		[self->pendingUploads addObject:feedback];
+		// Start feedback upload if there is no ongoing upload. Otherwise, the feedback will be
+		// uploaded when the previous uploads completes.
+		if ([self->pendingUploads count] == 1) {
+			assert(self->psiphonTunnelFeedback == nil);
+			self->psiphonTunnelFeedback = [[PsiphonTunnelFeedback alloc] init];
+			[self startSendingFeedback];
 		}
-	}
-
-	free(randomBytes);
-	return feedbackID;
+	});
 }
 
-// Generate `count` random bytes
-// Returned bytes must be freed by caller
-+ (uint8_t*)generateRandomBytes:(size_t)count {
-	uint8_t *randomBytes = (uint8_t *)malloc(sizeof(uint8_t) * count);
-	int result = SecRandomCopyBytes(kSecRandomDefault, count, randomBytes);
-	if(result != 0) {
-		free(randomBytes);
-		return NULL;
-	}
-	return randomBytes;
+/// @warning must be called on the work queue.
+- (void)stopSendingFeedback {
+	assert([self->pendingUploads count] > 0);
+	assert(self->psiphonTunnelFeedback != nil);
+	[self->psiphonTunnelFeedback stopSendFeedback];
 }
 
-+ (NSDictionary<NSString*, NSString*>*) gatherDeviceInfo {
-	UIDevice *device = [UIDevice currentDevice];
+/// @warning must be called on the work queue.
+- (void)startSendingFeedback {
+	assert([self->pendingUploads count] > 0);
 
-	UIUserInterfaceIdiom userInterfaceIdiom = [device userInterfaceIdiom];
-	NSString *userInterfaceIdiomString = @"";
-
-	switch (userInterfaceIdiom) {
-		case UIUserInterfaceIdiomUnspecified:
-			userInterfaceIdiomString = @"unspecified";
-			break;
-		case UIUserInterfaceIdiomPhone:
-			userInterfaceIdiomString = @"phone";
-			break;
-		case UIUserInterfaceIdiomPad:
-			userInterfaceIdiomString = @"pad";
-			break;
-		case UIUserInterfaceIdiomTV:
-			userInterfaceIdiomString = @"tv";
-			break;
-		case UIUserInterfaceIdiomCarPlay:
-			userInterfaceIdiomString = @"carPlay";
-			break;
+	if (self->connectionState == ConnectionStateConnecting ||
+		self->connectionState == ConnectionStateWaitingForNetwork) {
+		// Upload will be started when connection state is valid for upload.
+		self->uploadPaused = TRUE;
+		return;
 	}
 
-	NSDictionary<NSString*, NSString*> *deviceInfo =
-	@{
-	  @"systemName":device.systemName,
-	  @"systemVersion":device.systemVersion,
-	  @"model":device.model,
-	  @"localizedModel":device.localizedModel,
-	  @"userInterfaceIdiom":userInterfaceIdiomString
-	  };
+	NSString *config = [AppDelegate.sharedAppDelegate getPsiphonConfig];
+	if (config == nil) {
+		abort();
+		return;
+	}
 
-	return deviceInfo;
+	NSError *err;
+	NSDictionary *configDict =
+		[NSJSONSerialization JSONObjectWithData:[config dataUsingEncoding:NSUTF8StringEncoding]
+										options:kNilOptions
+										  error:&err];
+	if (err != nil) {
+		NSString *log = [NSString stringWithFormat:@"Failed to parse config JSON for feedback upload %@", err];
+		[[PsiphonData sharedInstance] addDiagnosticEntry:[DiagnosticEntry msg:log]];
+		abort();
+		return;
+	}
+
+	if (self->connectionState == ConnectionStateConnected) {
+		// Replace user configured proxy with local HTTP proxy exposed by Psiphon.
+		NSMutableDictionary *newConfigDict = [NSMutableDictionary dictionaryWithDictionary:configDict];
+		newConfigDict[@"UpstreamProxyURL"] = [NSString stringWithFormat:@"http://127.0.0.1:%ld",
+											  (long)AppDelegate.sharedAppDelegate.httpProxyPort];
+		[newConfigDict removeObjectForKey:@"CustomHeaders"];
+		configDict = newConfigDict;
+	}
+
+	UserFeedback *feedback = [self->pendingUploads objectAtIndex:0];
+	NSString *feedbackId = [Feedback generateFeedbackId];
+	NSString *feedbackJSON = [Feedback generateFeedbackJSON:feedback.selectedThumbIndex
+												  buildInfo:[PsiphonTunnel getBuildInfo]
+												   comments:feedback.comments
+													  email:feedback.email
+										 sendDiagnosticInfo:feedback.uploadDiagnostics
+												 feedbackId:feedbackId
+											  psiphonConfig:configDict
+											 clientPlatform:@"ios-browser"
+											 connectionType:[self getConnectionType]
+											   isJailbroken:[JailbreakCheck isDeviceJailbroken]
+										  diagnosticEntries:[PsiphonData.sharedInstance.diagnosticHistory copy]
+											  statusEntries:nil
+													  error:&err];
+	if (err != nil) {
+		NSString *log = [NSString stringWithFormat:@"FeedbackUpload: failed to generate feedback JSON %@", err];
+		[[PsiphonData sharedInstance] addDiagnosticEntry:[DiagnosticEntry msg:log]];
+		[self->pendingUploads removeObjectAtIndex:0];
+		return;
+	}
+
+	[self->psiphonTunnelFeedback startSendFeedback:feedbackJSON
+								feedbackConfigJson:configDict
+										uploadPath:@""
+									loggerDelegate:self
+								  feedbackDelegate:self];
+
 }
 
-// Get connection type
-+ (NSString*)getConnectionType {
+- (NSString*)getConnectionType {
 	Reachability *reachability = [Reachability reachabilityForInternetConnection];
-
 	NetworkStatus status = [reachability currentReachabilityStatus];
 
-	if(status == NotReachable)
-	{
+	if (status == NotReachable) {
 		return @"none";
-	}
-	else if (status == ReachableViaWiFi)
-	{
+	} else if (status == ReachableViaWiFi) {
 		return @"WIFI";
-	}
-	else if (status == ReachableViaWWAN)
-	{
+	} else if (status == ReachableViaWWAN) {
 		return @"mobile";
 	}
 
 	return @"error";
 }
 
-// Convert json string to dictionary
-+ (NSDictionary*)jsonToDictionary:(NSString*)jsonString {
-	NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-	NSError *e = nil;
+#pragma mark - PsiphonTunnelLoggerDelegate
 
-	NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&e];
+- (void)onDiagnosticMessage:(NSString * _Nonnull)message
+			  withTimestamp:(NSString * _Nonnull)timestamp {
+	dispatch_async(self->workQueue, ^{
+		NSString *log = [NSString stringWithFormat:@"FeedbackUpload: %@", message];
+		DiagnosticEntry *d = [DiagnosticEntry msg:log andTimestamp:[PsiphonData iso8601ToDate:timestamp]];
+		[[PsiphonData sharedInstance] addDiagnosticEntry:d];
+	});
+}
 
-	if (e) {
-		return nil;
-	}
+#pragma mark - PsiphonTunnelFeedbackDelegate
 
-	return json;
+- (void)sendFeedbackCompleted:(NSError * _Nullable)err {
+	dispatch_async(self->workQueue, ^{
+		assert([self->pendingUploads count] > 0);
+
+		if (err != nil) {
+			DiagnosticEntry *d = [DiagnosticEntry msg:[NSString stringWithFormat:@"FeedbackUpload: failed %@", err]];
+			[[PsiphonData sharedInstance] addDiagnosticEntry:d];
+		} else {
+			DiagnosticEntry *d = [DiagnosticEntry msg:@"FeedbackUpload: success"];
+			[[PsiphonData sharedInstance] addDiagnosticEntry:d];
+		}
+
+		// Check if the upload completed because it was cancelled and should be retried.
+		if (self->uploadPaused == FALSE) {
+			[self->pendingUploads removeObjectAtIndex:0];
+		}
+
+		if ([self->pendingUploads count] == 0) {
+			self->psiphonTunnelFeedback = nil;
+		} else {
+			[self startSendingFeedback];
+		}
+	});
 }
 
 @end

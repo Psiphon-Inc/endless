@@ -51,7 +51,7 @@ PODS:
     - DTFoundation/Core
   - DTFoundation/UIKit_BlocksAdditions (1.7.13):
     - DTFoundation/Core
-  - InAppSettingsKit (2.9.4)
+  - InAppSettingsKit (2.15)
   - MarqueeLabel (3.2.0):
     - MarqueeLabel/ObjC (= 3.2.0)
   - MarqueeLabel/ObjC (3.2.0)
@@ -61,18 +61,18 @@ PODS:
     - ReactiveObjC (= 3.1.1)
   - OpenSSL-Universal (1.0.2.17)
   - OrderedDictionary (1.4)
-  - PsiphonClientCommonLibrary (1.2.2):
-    - InAppSettingsKit
+  - PsiphonClientCommonLibrary (4.0.4):
+    - InAppSettingsKit (= 2.15)
   - ReactiveObjC (3.1.1)
 
 DEPENDENCIES:
   - DTFoundation
-  - InAppSettingsKit (from `https://github.com/Psiphon-Inc/InAppSettingsKit.git`, commit `598c498`)
+  - InAppSettingsKit (from `https://github.com/Psiphon-Inc/InAppSettingsKit.git`, commit `8bd203c`)
   - MarqueeLabel
   - OCMock
   - OCSPCache (from `https://github.com/Psiphon-Labs/OCSPCache.git`, commit `5149e73`)
   - OrderedDictionary
-  - PsiphonClientCommonLibrary (from `https://github.com/Psiphon-Inc/psiphon-ios-client-common-library.git`, commit `f97b258`)
+  - PsiphonClientCommonLibrary (from `https://github.com/Psiphon-Inc/psiphon-ios-client-common-library.git`, commit `687cecc`)
 
 SPEC REPOS:
   trunk:
@@ -85,37 +85,37 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   InAppSettingsKit:
-    :commit: 598c498
+    :commit: 8bd203c
     :git: https://github.com/Psiphon-Inc/InAppSettingsKit.git
   OCSPCache:
     :commit: '5149e73'
     :git: https://github.com/Psiphon-Labs/OCSPCache.git
   PsiphonClientCommonLibrary:
-    :commit: f97b258
+    :commit: 687cecc
     :git: https://github.com/Psiphon-Inc/psiphon-ios-client-common-library.git
 
 CHECKOUT OPTIONS:
   InAppSettingsKit:
-    :commit: 598c498
+    :commit: 8bd203c
     :git: https://github.com/Psiphon-Inc/InAppSettingsKit.git
   OCSPCache:
     :commit: '5149e73'
     :git: https://github.com/Psiphon-Labs/OCSPCache.git
   PsiphonClientCommonLibrary:
-    :commit: f97b258
+    :commit: 687cecc
     :git: https://github.com/Psiphon-Inc/psiphon-ios-client-common-library.git
 
 SPEC CHECKSUMS:
   DTFoundation: f03be9fd786f11e505bb8fc44e2a3732bf0917df
-  InAppSettingsKit: 567ef538698cd6cf3afb9c5529b89a8936fdacb5
+  InAppSettingsKit: 4890a44f9df7a1742c632920f0ea939cbeb29ea2
   MarqueeLabel: 440a502b91a9179bd98f9fff00ba1150650a1c0e
   OCMock: f3f61e6eaa16038c30caa5798c5e49d3307b6f22
   OCSPCache: 090d054dbf8f31602896d2527a8bd69d49515695
   OpenSSL-Universal: ff04c2e6befc3f1247ae039e60c93f76345b3b5a
   OrderedDictionary: 138c8d2e358d3a0c9adda15c6c7db24e8e3b09e6
-  PsiphonClientCommonLibrary: 8ac2c3a40332aaf3a8c9c9a7e1a71997878e21af
+  PsiphonClientCommonLibrary: 0fddcbb3ccc94ada6a774efb28a238e0a02d04dc
   ReactiveObjC: 011caa393aa0383245f2dcf9bf02e86b80b36040
 
-PODFILE CHECKSUM: fa389be342278a8c237c06937208faf109fd5c5a
+PODFILE CHECKSUM: 86d41244de92b736761a792081d204600eacad88
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.10.1

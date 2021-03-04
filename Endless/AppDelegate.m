@@ -310,7 +310,6 @@ NSString* _Nonnull const clearAllWhenBackgroundedUserDefaultsKey = @"clearAllWhe
 	if ([self areTesting])
 		return NO;
 
-	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	if ([self clearAllWhenBackgrounded]) {
 		return NO;
 	}
@@ -398,7 +397,7 @@ NSString* _Nonnull const clearAllWhenBackgroundedUserDefaultsKey = @"clearAllWhe
 
 	NSString *upstreamProxyUrl = [[UpstreamProxySettings sharedInstance] getUpstreamProxyUrl];
 	if ([upstreamProxyUrl length] > 0) {
-		mutableConfigCopy[@"UpstreamProxyUrl"] = upstreamProxyUrl;
+		mutableConfigCopy[@"UpstreamProxyURL"] = upstreamProxyUrl;
 	}
 
 	if ([[UpstreamProxySettings sharedInstance] getUseCustomHeaders]) {
@@ -427,7 +426,7 @@ NSString* _Nonnull const clearAllWhenBackgroundedUserDefaultsKey = @"clearAllWhe
 	jsonData = [NSJSONSerialization dataWithJSONObject:mutableConfigCopy
 											   options:0 // non-pretty printing
 												 error:&e];
-	if(e) {
+	if (e) {
 		NSLog(@"Failed to create JSON data from config object. Aborting now.");
 		abort();
 	}
@@ -459,8 +458,10 @@ NSString* _Nonnull const clearAllWhenBackgroundedUserDefaultsKey = @"clearAllWhe
 #ifdef TRACE
 		NSLog(@"onDiagnosticMessage: %@", message);
 #endif
-		DiagnosticEntry *newDiagnosticEntry = [[DiagnosticEntry alloc] init:message];
-		[[PsiphonData sharedInstance] addDiagnosticEntry:newDiagnosticEntry];
+		DiagnosticEntry *d =
+			[DiagnosticEntry msg:message
+					andTimestamp:[PsiphonData iso8601ToDate:timestamp]];
+		[[PsiphonData sharedInstance] addDiagnosticEntry:d];
 	});
 }
 

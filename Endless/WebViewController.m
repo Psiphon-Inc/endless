@@ -7,6 +7,7 @@
 
 #import "Bookmark.h"
 #import "BookmarkController.h"
+#import "Feedback.h"
 #import "FeedbackUpload.h"
 #import "FeedbackViewController.h"
 #import "HTTPSEverywhereRuleController.h"
@@ -101,6 +102,8 @@ static BOOL (^safeStringsEqual)(NSString *, NSString *) = ^BOOL(NSString *a, NSS
 
 	CAGradientLayer *gradient; // Loading bar for file downloads
 	CAShapeLayer *loadingBar; // Mask for gradient loading bar
+
+	FeedbackUpload *feedbackUpload;
 
 	BOOL isRTL;
 }
@@ -1505,44 +1508,20 @@ static BOOL (^safeStringsEqual)(NSString *, NSString *) = ^BOOL(NSString *a, NSS
 
 #pragma mark - FeedbackViewControllerDelegate methods
 
-- (void)userSubmittedFeedback:(NSUInteger)selectedThumbIndex
+- (void)userSubmittedFeedback:(NSInteger)selectedThumbIndex
 					 comments:(NSString*)comments
 						email:(NSString*)email
 			uploadDiagnostics:(BOOL)uploadDiagnostics {
-
-	SendFeedbackHandler sendFeedbackHandler = ^(NSString *jsonString, NSString *pubKey, NSString *uploadServer, NSString *uploadServerHeaders){
-		[[AppDelegate sharedAppDelegate].psiphonTunnel sendFeedback:jsonString publicKey:pubKey uploadServer:uploadServer uploadServerHeaders:uploadServerHeaders]; // TODO: weak ref?
-	};
-
-	[FeedbackUpload generateAndSendFeedback:selectedThumbIndex
-								  buildInfo:[PsiphonTunnel getBuildInfo]
-								   comments:comments
-									  email:email
-						 sendDiagnosticInfo:uploadDiagnostics
-						  withPsiphonConfig:[PsiphonClientCommonLibraryHelpers getPsiphonBundledConfig]
-						 withClientPlatform:@"ios-browser"
-						 withConnectionType:[self getConnectionType]
-							   isJailbroken:[JailbreakCheck isDeviceJailbroken]
-						sendFeedbackHandler:sendFeedbackHandler
-						  diagnosticEntries:[PsiphonData sharedInstance].diagnosticHistory];
-}
-
-// Get connection type
-- (NSString*)getConnectionType {
-
-	Reachability *reachability = [Reachability reachabilityForInternetConnection];
-
-	NetworkStatus status = [reachability currentReachabilityStatus];
-
-	if (status == NotReachable) {
-		return @"none";
-	} else if (status == ReachableViaWiFi) {
-		return @"WIFI";
-	} else if (status == ReachableViaWWAN) {
-		return @"mobile";
+	if (self->feedbackUpload == nil) {
+		// Note: both psiphonConnectionStateNotified and this function are called on the main thread,
+		// so this initial connection state does not race with receiving a connection state change
+		// notification.
+		self->feedbackUpload = [[FeedbackUpload alloc] initWithConnectionState:[AppDelegate sharedAppDelegate].psiphonConectionState];
 	}
-
-	return @"error";
+	[self->feedbackUpload uploadFeedbackWithSelectedThumbIndex:selectedThumbIndex
+													  comments:comments
+														 email:email
+											 uploadDiagnostics:uploadDiagnostics];
 }
 
 - (void)userPressedURL:(NSURL*)URL {
@@ -1756,7 +1735,7 @@ static BOOL (^safeStringsEqual)(NSString *, NSString *) = ^BOOL(NSString *a, NSS
 {
 	ConnectionState state = [[notification.userInfo objectForKey:kPsiphonConnectionState] unsignedIntegerValue];
 	[psiphonConnectionIndicator displayConnectionState:state];
-	if(state != ConnectionStateConnected) {
+	if (state != ConnectionStateConnected) {
 		[self stopLoading];
 	} else {
 		for (WebViewTab *wvt in webViewTabs) {
@@ -1765,6 +1744,10 @@ static BOOL (^safeStringsEqual)(NSString *, NSString *) = ^BOOL(NSString *a, NSS
 				[wvt setShouldReloadOnConnected:NO];
 			}
 		}
+	}
+
+	if (self->feedbackUpload != nil) {
+		[self->feedbackUpload setConnectionState:state];
 	}
 }
 
